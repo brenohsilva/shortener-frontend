@@ -9,5 +9,8 @@ export type UrlData = {
   created_at: string;
   update_at: string;
   deleted_at: string | null;
-  expires_at: string;
+  expires_at: string | null;
+  _count: {
+    clicks: number;
+  };
 };

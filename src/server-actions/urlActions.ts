@@ -1,12 +1,8 @@
 "use server";
 
 import { createUrlSchema } from "@/app/schemas/urlSchema";
-import apiClient from "./apiClient";
 
-export const getClientUrls = async () => {
-  const response = await apiClient.get("/urls");
-  return response.data;
-};
+import { verifySession } from "@/_lib/session";
 
 export async function createUrl(state: any, formData: FormData) {
   const validationResult = createUrlSchema.safeParse({
@@ -27,12 +23,11 @@ export async function createUrl(state: any, formData: FormData) {
     });
 
     if (!response.ok) {
-        console.log(response)
-        throw new Error("Failed to register");
-      }
+      console.log(response);
+      throw new Error("Failed to register");
+    }
 
-      return await response.json();
-
+    return await response.json();
   } catch (error) {
     console.error("Error:", error);
     return {
@@ -40,5 +35,28 @@ export async function createUrl(state: any, formData: FormData) {
         global: "An error occurred while creating url. Please try again.",
       },
     };
+  }
+}
+
+export async function getClientUrls() {
+  const { access_token } = await verifySession();
+  try {
+    const response = await fetch("http://localhost:4000/api/urls", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch urls");
+    }
+
+    const urls = await response.json();
+    return urls;
+  } catch (error) {
+    console.error("Error fetching urls:", error);
+    throw error;
   }
 }

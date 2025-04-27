@@ -87,7 +87,7 @@ export default function Home() {
           {/* Resultado simulado */}
           {state?.shorten_url && (
             <div className="mt-6 flex items-center border border-gray-300 justify-between bg-blue-50 p-3 rounded max-w-xl w-full">
-              <div className="flex flex-col justify-start text-left">
+              <div className="flex flex-col justify-start text-left w-[350px]">
                 <a
                   href={state.shorten_url}
                   target="_blank"
@@ -105,7 +105,7 @@ export default function Home() {
                   {state.origin_url}
                 </a>
               </div>
-              <div className="text-xs text-gray-500 text-right">
+              <div className="text-xs border rounded border-gray-300 p-1 text-gray-500 text-right">
                 {minutesLeft !== null
                   ? `Expira em ${minutesLeft} minutos`
                   : "Sem tempo de expiração"}

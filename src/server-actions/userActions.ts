@@ -1,9 +1,9 @@
 "use server";
 
 import { loginSchema, registerSchema } from "@/app/schemas/usersSchema";
-import apiClient from "./apiClient";
+
 import { redirect } from "next/navigation";
-import { createSession } from "@/_lib/session";
+import { createSession, verifySession } from "@/_lib/session";
 
 export async function register(state: any, formData: FormData) {
   const validationResult = registerSchema.safeParse({
@@ -62,14 +62,13 @@ export async function login(state: any, formData: FormData) {
       },
       body: JSON.stringify(validationResult.data),
     });
-  
+
     if (!response.ok) {
       throw new Error("Failed to register");
     }
-  
+
     const data = await response.json();
     token = data.access_token;
-
   } catch (error) {
     console.error("Error:", error);
     return {
@@ -82,7 +81,25 @@ export async function login(state: any, formData: FormData) {
   await createSession(token);
 }
 
-export const getUsers = async () => {
-  const response = await apiClient.get("/users");
-  return response.data;
-};
+export async function myProfile() {
+  const { access_token } = await verifySession();
+  try {
+    const response = await fetch("http://localhost:4000/api/users/profile", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch profile");
+    }
+
+    const profileData = await response.json();
+    return profileData;
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    throw error;
+  }
+}
