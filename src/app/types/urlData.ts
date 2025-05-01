@@ -13,4 +13,8 @@ export type UrlData = {
   _count: {
     clicks: number;
   };
+  tags: {
+    id: number;
+    name: string;
+  }[]
 };

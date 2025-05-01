@@ -30,7 +30,20 @@ export function LinkItem({ url, onEdit, onCopy, onDelete }: LinkItemProps) {
       </div>
 
       <div className="flex items-center gap-4 text-sm text-gray-500 relative">
-        <span>{new Date(url.created_at).toLocaleDateString()}</span>
+        {url.tags.map((tag) => (
+          <span
+            key={tag.id}
+            className="inline-block bg-blue-300 text-blue-700 text-xs px-2 py-1 rounded-md"
+          >
+            {tag.name}
+          </span>
+        ))}
+        <span>
+          {new Date(url.created_at).toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+          })}
+        </span>
         <span>{url._count.clicks} clicks</span>
 
         <div className="relative inline-block text-left">
@@ -57,7 +70,7 @@ export function LinkItem({ url, onEdit, onCopy, onDelete }: LinkItemProps) {
                     setMenuOpen(false);
                   }}
                 >
-                  <Edit3 size={14}  /> Editar
+                  <Edit3 size={14} /> Editar
                 </button>
                 <button
                   className="flex w-full items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
