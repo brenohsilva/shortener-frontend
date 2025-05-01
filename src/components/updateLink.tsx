@@ -1,6 +1,17 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { UrlData } from "@/app/types/urlData";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandInput,
+} from "@/components/ui/command";
+import { Check, Plus } from "lucide-react";
+import { Textarea } from "./ui/textarea";
 
 interface UpdateLinkProps {
   url: UrlData;
@@ -8,7 +19,24 @@ interface UpdateLinkProps {
   onClose: () => void;
 }
 
+const allTags = [
+  { id: 5, name: "Tag1" },
+  { id: 6, name: "Tag2" },
+  { id: 7, name: "Tag3" },
+];
+
 export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
+  const [selectedTags, setSelectedTags] = useState(url.tags || []);
+  const [query, setQuery] = useState("");
+
+  const toggleTag = (tag: { id: number; name: string }) => {
+    if (selectedTags.find((t) => t.id === tag.id)) {
+      setSelectedTags(selectedTags.filter((t) => t.id !== tag.id));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -26,6 +54,7 @@ export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
           </div>
 
           <div className="flex flex-col gap-8">
+            {/* Destination URL */}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 Destination URL
@@ -38,6 +67,7 @@ export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
               />
             </div>
 
+            {/* Short Link */}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 Short Link
@@ -56,28 +86,89 @@ export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
               </div>
             </div>
 
+            {/* Tags */}
             <div>
-              <label className="text-sm font-medium text-gray-700">Tags</label>
-              <input
-                type="text"
-                placeholder="Adicionar tags"
-                className="mt-1 p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-              />
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Tags
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedTags.map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() => toggleTag(tag)}
+                  >
+                    {tag.name} <X className="ml-1 h-3 w-3" />
+                  </Badge>
+                ))}
+              </div>
+
+              <Command>
+                <CommandInput
+                  placeholder="Search or add tags..."
+                  value={query}
+                  onValueChange={setQuery}
+                />
+                <CommandList>
+                  <CommandGroup>
+                    {allTags
+                      .filter((tag) =>
+                        tag.name.toLowerCase().includes(query.toLowerCase())
+                      )
+                      .map((tag) => (
+                        <CommandItem
+                          key={tag.id}
+                          onSelect={() => toggleTag(tag)}
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedTags.find((t) => t.id === tag.id)
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          {tag.name}
+                        </CommandItem>
+                      ))}
+
+                    {/* Nova tag */}
+                    {!allTags.find(
+                      (tag) => tag.name.toLowerCase() === query.toLowerCase()
+                    ) &&
+                      query.trim() !== "" && (
+                        <CommandItem
+                          onSelect={() => {
+                            const newTag = {
+                              id: Math.random(), // temp id local
+                              name: query,
+                            };
+                            setSelectedTags([...selectedTags, newTag]);
+                            // também adicione no allTags se quiser sugerir depois
+                          }}
+                        >
+                          <Plus className="mr-2 h-4 w-4" /> Create "{query}"
+                        </CommandItem>
+                      )}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
             </div>
 
+            {/* Comments */}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 Comments
               </label>
-              <textarea
-                placeholder="Adicionar comentários"
-                className="mt-1 w-full rounded-md p-2 text-sm border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                rows={3}
+              <Textarea
+                
               />
             </div>
 
             <div className="flex justify-end">
-                <button className="border p-2 border-gray-300 rounded-md bg-blue-600 text-white text-xs"> Salvar alterações</button>
+              <button className="border p-2 border-gray-300 rounded-md bg-blue-600 text-white text-xs">
+                Salvar alterações
+              </button>
             </div>
           </div>
         </Dialog.Content>

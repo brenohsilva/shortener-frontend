@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [active, setActive] = useState("Links");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [updatinggUrl, setUpdatingUrl] = useState<UrlData | null>(null);
+  const [updatingUrl, setUpdatingUrl] = useState<UrlData | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -131,9 +131,9 @@ export default function Dashboard() {
 
       {active === "Settings" && <WorkspaceSettings />}
 
-      {updatinggUrl && (
+      {updatingUrl && (
         <UpdateLink
-          url={updatinggUrl}
+          url={updatingUrl}
           isOpen={true}
           onClose={() => setUpdatingUrl(null)}
         />
