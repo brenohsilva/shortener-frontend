@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.11",
     "axios": "^1.8.4",
     "jose": "^6.0.10",
     "lucide-react": "^0.488.0",

@@ -7,12 +7,14 @@ import Sidebar from "./components/sidebar/sidebar";
 import { LinkItem } from "./components/links/links";
 import { UrlData } from "../types/urlData";
 import { Analytics } from "./components/analytics/analytics";
+import { UpdateLink } from "@/components/updateLink";
 
 export default function Dashboard() {
   const [urls, setUrls] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [active, setActive] = useState("Links");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updatinggUrl, setUpdatingUrl] = useState<UrlData | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -63,10 +65,6 @@ export default function Dashboard() {
     loadProfile();
     loadUrls();
   }, []);
-
-  function handleEdit(url: UrlData) {
-    console.log("Editando", url);
-  }
 
   function handleCopy(url: UrlData) {
     console.log("Copiando", url);
@@ -121,7 +119,7 @@ export default function Dashboard() {
               <LinkItem
                 key={url.id}
                 url={url}
-                onEdit={() => handleEdit(url)}
+                onEdit={() => setUpdatingUrl(url)}
                 onCopy={() => handleCopy(url)}
                 onDelete={() => handleDelete(url)}
               />
@@ -132,6 +130,14 @@ export default function Dashboard() {
       {active === "Analytics" && <Analytics />}
 
       {active === "Settings" && <WorkspaceSettings />}
+
+      {updatinggUrl && (
+        <UpdateLink
+          url={updatinggUrl}
+          isOpen={true}
+          onClose={() => setUpdatingUrl(null)}
+        />
+      )}
     </div>
   );
 }
