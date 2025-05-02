@@ -1,6 +1,14 @@
 import { useState, useRef } from "react";
-import { Edit3, Copy, Trash2 } from "lucide-react";
+import { Edit3, Copy, Trash2, MessageCircle } from "lucide-react";
 import { UrlData } from "@/app/types/urlData";
+import {
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  Tooltip,
+} from "@radix-ui/react-tooltip";
+
+import { toast } from "sonner";
 
 interface LinkItemProps {
   url: UrlData;
@@ -11,19 +19,51 @@ interface LinkItemProps {
 
 export function LinkItem({ url, onEdit, onCopy, onDelete }: LinkItemProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleCopyShortUrl = () => {
+    navigator.clipboard
+      .writeText(url.shorten_url)
+      .then(() => {
+        toast.success("Link copiado");
+      })
+      .catch((err) => {
+        console.error("Failed to copy: ", err);
+      });
+  };
 
   return (
     <div className="flex justify-between items-center border border-gray-300 p-2 rounded-md relative">
       <div>
-        <a
-          href={url.shorten_url}
-          className="text-blue-600 font-medium text-sm"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {url.shorten_url.replace(/^https?:\/\//, "")}
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            href={url.shorten_url}
+            className="text-blue-600 font-medium text-sm"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {url.shorten_url.replace(/^https?:\/\//, "")}
+          </a>
+          <button
+            onClick={handleCopyShortUrl}
+            className="cursor-pointer p-1 rounded-full hover:bg-gray-100"
+          >
+            <Copy size={10} />
+          </button>
+          {url.comments && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <MessageCircle size={10} />
+                </TooltipTrigger>
+                <TooltipContent className="bg-gray-800 text-white text-xs p-2 rounded-md">
+                  <p>{url.comments}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <p className="text-sm text-gray-600 truncate max-w-md">
           {url.origin_url}
         </p>
@@ -71,15 +111,6 @@ export function LinkItem({ url, onEdit, onCopy, onDelete }: LinkItemProps) {
                   }}
                 >
                   <Edit3 size={14} /> Editar
-                </button>
-                <button
-                  className="flex w-full items-center gap-2 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100"
-                  onClick={() => {
-                    onCopy();
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Copy size={14} /> Copiar
                 </button>
                 <button
                   className="flex w-full items-center gap-2 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
