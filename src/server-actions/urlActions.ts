@@ -1,6 +1,6 @@
 "use server";
 
-import { createUrlSchema } from "@/app/schemas/urlSchema";
+import { createUrlSchema, updateUrlSchema } from "@/app/schemas/urlSchema";
 
 import { verifySession } from "@/_lib/session";
 
@@ -33,6 +33,49 @@ export async function createUrl(state: any, formData: FormData) {
     return {
       error: {
         global: "An error occurred while creating url. Please try again.",
+      },
+    };
+  }
+}
+
+export async function updateUrl(urlId: number, state: any, formData: FormData) {
+  const { access_token } = await verifySession();
+  const tags = formData.getAll("tags").map((tag) => {
+    return typeof tag === "string" ? { name: tag } : tag;
+  });
+
+  const validationResult = updateUrlSchema.safeParse({
+    origin_url: formData.get("origin_url"),
+    comments: formData.get("comments"),
+    tags: tags,
+  });
+
+  if (!validationResult.success) {
+    return {
+      error: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const response = await fetch(`http://localhost:4000/api/urls/${urlId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(validationResult.data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update url");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error:", error);
+    return {
+      error: {
+        global: "An error occurred while updating url. Please try again.",
       },
     };
   }

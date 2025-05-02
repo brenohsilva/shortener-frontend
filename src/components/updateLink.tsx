@@ -1,7 +1,9 @@
+"use client";
+
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { UrlData } from "@/app/types/urlData";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Command,
@@ -12,6 +14,7 @@ import {
 } from "@/components/ui/command";
 import { Check, Plus } from "lucide-react";
 import { Textarea } from "./ui/textarea";
+import { updateUrl } from "@/server-actions/urlActions";
 
 interface UpdateLinkProps {
   url: UrlData;
@@ -28,6 +31,10 @@ const allTags = [
 export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
   const [selectedTags, setSelectedTags] = useState(url.tags || []);
   const [query, setQuery] = useState("");
+  const [state, action, pending] = useActionState(
+    (prevState, formData) => updateUrl(url.id, state, formData),
+    null
+  );
 
   const toggleTag = (tag: { id: number; name: string }) => {
     if (selectedTags.find((t) => t.id === tag.id)) {
@@ -53,13 +60,14 @@ export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
             </Dialog.Close>
           </div>
 
-          <div className="flex flex-col gap-8">
+          <form action={action} className="flex flex-col gap-8">
             {/* Destination URL */}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 Destination URL
               </label>
               <input
+                name="origin_url"
                 type="text"
                 value={url.origin_url}
                 className="mt-1 w-full p-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -132,7 +140,6 @@ export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
                         </CommandItem>
                       ))}
 
-                    {/* Nova tag */}
                     {!allTags.find(
                       (tag) => tag.name.toLowerCase() === query.toLowerCase()
                     ) &&
@@ -140,11 +147,10 @@ export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
                         <CommandItem
                           onSelect={() => {
                             const newTag = {
-                              id: Math.random(), // temp id local
+                              id: Math.random(),
                               name: query,
                             };
                             setSelectedTags([...selectedTags, newTag]);
-                            // também adicione no allTags se quiser sugerir depois
                           }}
                         >
                           <Plus className="mr-2 h-4 w-4" /> Create "{query}"
@@ -154,23 +160,29 @@ export function UpdateLink({ url, isOpen, onClose }: UpdateLinkProps) {
                 </CommandList>
               </Command>
             </div>
+            {selectedTags.map((tag) => (
+              <input
+                key={`hidden-${tag.id}`}
+                type="hidden"
+                name="tags"
+                value={tag.name}
+              />
+            ))}
 
             {/* Comments */}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 Comments
               </label>
-              <Textarea
-                
-              />
+              <Textarea name="comments" defaultValue={url.comments || ""} />
             </div>
 
             <div className="flex justify-end">
-              <button className="border p-2 border-gray-300 rounded-md bg-blue-600 text-white text-xs">
-                Salvar alterações
+              <button disabled={pending} className="border p-2 border-gray-300 rounded-md bg-blue-600 text-white text-xs">
+              {pending ? "Salvando..." : "Salvar Alterações"}
               </button>
             </div>
-          </div>
+          </form>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
