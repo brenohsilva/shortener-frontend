@@ -81,6 +81,32 @@ export async function updateUrl(urlId: number, state: any, formData: FormData) {
   }
 }
 
+export async function deleteUrl(urlId: number) {
+  const { access_token } = await verifySession();
+  try{
+    const response = await fetch(`http://localhost:4000/api/urls/${urlId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete url");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error:", error);
+    return {
+      error: {
+        global: "An error occurred while deleting url. Please try again.",
+      },
+    };
+  }
+}
+
 export async function getClientUrls() {
   const { access_token } = await verifySession();
   try {

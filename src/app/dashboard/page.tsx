@@ -8,6 +8,7 @@ import { LinkItem } from "./components/links/links";
 import { UrlData } from "../types/urlData";
 import { Analytics } from "./components/analytics/analytics";
 import { UpdateLink } from "@/components/updateLink";
+import { DeleteLink } from "@/components/deleteLink";
 
 export default function Dashboard() {
   const [urls, setUrls] = useState<any[]>([]);
@@ -15,6 +16,8 @@ export default function Dashboard() {
   const [active, setActive] = useState("Links");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingUrl, setUpdatingUrl] = useState<UrlData | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [selectedUrl, setSelectedUrl] = useState<UrlData | null>(null);
 
   async function loadProfile() {
     try {
@@ -66,8 +69,26 @@ export default function Dashboard() {
     loadUrls();
   }, []);
 
-  function handleDelete(url: UrlData) {
-    console.log("Deletando", url);
+  async function handleDelete(url: UrlData) {
+    try {
+      const res = await fetch("/api/urls", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: url.id }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Erro ao deletar URL");
+      }
+
+      loadUrls();
+    } catch (error) {
+      console.error("Erro ao deletar URL:", error);
+      alert("Ocorreu um erro ao deletar a URL");
+    }
   }
 
   return (
@@ -116,7 +137,10 @@ export default function Dashboard() {
                 key={url.id}
                 url={url}
                 onEdit={() => setUpdatingUrl(url)}
-                onDelete={() => handleDelete(url)}
+                onDelete={() => {
+                  setSelectedUrl(url);
+                  setIsDeleteOpen(true);
+                }}
               />
             ))}
           </div>
@@ -133,6 +157,21 @@ export default function Dashboard() {
           onClose={() => {
             setUpdatingUrl(null);
             loadUrls();
+          }}
+        />
+      )}
+      {selectedUrl && (
+        <DeleteLink
+          open={isDeleteOpen}
+          onOpenChange={setIsDeleteOpen}
+          url={{
+            id: selectedUrl.id,
+            shorten_url: selectedUrl.shorten_url,
+            origin_url: selectedUrl.origin_url,
+          }}
+          onDeleteConfirm={async () => {
+            await handleDelete(selectedUrl);
+            setSelectedUrl(null);
           }}
         />
       )}
