@@ -13,11 +13,10 @@ import { toast } from "sonner";
 interface LinkItemProps {
   url: UrlData;
   onEdit: () => void;
-  onCopy: () => void;
   onDelete: () => void;
 }
 
-export function LinkItem({ url, onEdit, onCopy, onDelete }: LinkItemProps) {
+export function LinkItem({ url, onEdit, onDelete }: LinkItemProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);

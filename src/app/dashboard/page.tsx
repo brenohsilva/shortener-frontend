@@ -16,59 +16,55 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingUrl, setUpdatingUrl] = useState<UrlData | null>(null);
 
+  async function loadProfile() {
+    try {
+      const res = await fetch("/api/profile");
+      if (!res.ok) {
+        console.error("Erro ao carregar perfil:", res.statusText);
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Resposta não é JSON:", text);
+        throw new Error("Resposta não é JSON");
+      }
+
+      const data = await res.json();
+      setProfile(data);
+    } catch (error) {
+      console.error("Erro ao carregar perfil:", error);
+    }
+  }
+
+  async function loadUrls() {
+    try {
+      const res = await fetch("/api/urls");
+      if (!res.ok) {
+        console.error("Erro ao carregar as urls:", res.statusText);
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Resposta não é JSON:", text);
+        throw new Error("Resposta não é JSON");
+      }
+
+      const data = await res.json();
+      setUrls(data);
+      console.log("Urls:", data);
+    } catch (error) {
+      console.error("Erro ao carregar perfil:", error);
+    }
+  }
+
   useEffect(() => {
-    async function loadProfile() {
-      try {
-        const res = await fetch("/api/profile");
-        if (!res.ok) {
-          console.error("Erro ao carregar perfil:", res.statusText);
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const text = await res.text();
-          console.error("Resposta não é JSON:", text);
-          throw new Error("Resposta não é JSON");
-        }
-
-        const data = await res.json();
-        setProfile(data);
-      } catch (error) {
-        console.error("Erro ao carregar perfil:", error);
-      }
-    }
-
-    async function loadUrls() {
-      try {
-        const res = await fetch("/api/urls");
-        if (!res.ok) {
-          console.error("Erro ao carregar as urls:", res.statusText);
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          const text = await res.text();
-          console.error("Resposta não é JSON:", text);
-          throw new Error("Resposta não é JSON");
-        }
-
-        const data = await res.json();
-        setUrls(data);
-        console.log("Urls:", data);
-      } catch (error) {
-        console.error("Erro ao carregar perfil:", error);
-      }
-    }
-
     loadProfile();
     loadUrls();
   }, []);
-
-  function handleCopy(url: UrlData) {
-    console.log("Copiando", url);
-  }
 
   function handleDelete(url: UrlData) {
     console.log("Deletando", url);
@@ -120,7 +116,6 @@ export default function Dashboard() {
                 key={url.id}
                 url={url}
                 onEdit={() => setUpdatingUrl(url)}
-                onCopy={() => handleCopy(url)}
                 onDelete={() => handleDelete(url)}
               />
             ))}
@@ -135,7 +130,10 @@ export default function Dashboard() {
         <UpdateLink
           url={updatingUrl}
           isOpen={true}
-          onClose={() => setUpdatingUrl(null)}
+          onClose={() => {
+            setUpdatingUrl(null);
+            loadUrls();
+          }}
         />
       )}
     </div>
