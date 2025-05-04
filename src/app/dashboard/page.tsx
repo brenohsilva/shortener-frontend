@@ -125,7 +125,12 @@ export default function Dashboard() {
                   Criar Link
                 </button>
                 {isModalOpen && (
-                  <CreateLinkModal onClose={() => setIsModalOpen(false)} />
+                  <CreateLinkModal
+                    open={isModalOpen}
+                    onClose={() => {setIsModalOpen(false)
+                      loadUrls();
+                    }}
+                  />
                 )}
               </div>
             </div>

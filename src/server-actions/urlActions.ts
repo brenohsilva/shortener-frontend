@@ -38,6 +38,54 @@ export async function createUrl(state: any, formData: FormData) {
   }
 }
 
+export async function createUrlAuthenticated(state: any, formData: FormData){
+  
+  const { access_token } = await verifySession();
+
+  const tags = formData.getAll("tags").map((tag) => {
+    return typeof tag === "string" ? { name: tag } : tag;
+  });
+
+  const validationResult = createUrlSchema.safeParse({
+    origin_url: formData.get("origin_url"),
+    short_code: formData.get("short_code"),
+    comments: formData.get("comments"),
+    tags: tags,
+  });
+  
+  if (!validationResult.success) {
+    return {
+      error: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const response = await fetch("http://localhost:4000/api/urls", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(validationResult.data),
+    });
+
+    if (!response.ok) {
+      console.log(response);
+      throw new Error("Failed to register");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error:", error);
+    return {
+      error: {
+        global: "An error occurred while creating url. Please try again.",
+      },
+    };
+  }
+
+}
+
 export async function updateUrl(urlId: number, state: any, formData: FormData) {
   const { access_token } = await verifySession();
   const tags = formData.getAll("tags").map((tag) => {
