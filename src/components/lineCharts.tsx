@@ -1,3 +1,5 @@
+"use client";
+
 import {
   LineChart,
   Line,
@@ -7,15 +9,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { time: "2:00 AM", clicks: 0 },
-  { time: "7:00 AM", clicks: 0 },
-  { time: "12:00 PM", clicks: 3 },
-  { time: "5:00 PM", clicks: 0 },
-  { time: "10:00 PM", clicks: 1 },
-];
+interface ClicksChartData {
+  time: string;
+  clicks: number;
+}
 
-export default function ClicksChart() {
+export default function ClicksChart({ data }: { data: ClicksChartData[] }) {
+  
   return (
     <div style={{ width: "100%", height: 300 }}>
       <ResponsiveContainer>

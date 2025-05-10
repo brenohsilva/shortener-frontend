@@ -177,3 +177,32 @@ export async function getClientUrls() {
     throw error;
   }
 }
+
+export async function getUrlClicks(groupBy: "hour" | "day", tag?: string) {
+  const { access_token } = await verifySession();
+  const params = new URLSearchParams();
+  if (groupBy) params.append('groupBy', groupBy);
+  if (tag) params.append('tag', tag);
+
+   const url = `http://localhost:4000/api/urls/clicks?${params.toString()}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch clicks");
+    }
+
+    const clicks = await response.json();
+    return clicks;
+  } catch (error) {
+    console.error("Error fetching clicks:", error);
+    throw error;
+  }
+}
