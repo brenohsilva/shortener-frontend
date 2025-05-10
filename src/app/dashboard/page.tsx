@@ -9,6 +9,7 @@ import { UrlData } from "../types/urlData";
 import { Analytics } from "./components/analytics/analytics";
 import { UpdateLink } from "@/components/updateLink";
 import { DeleteLink } from "@/components/deleteLink";
+import EmptyLinks from "@/components/emptyLinks";
 
 export default function Dashboard() {
   const [urls, setUrls] = useState<any[]>([]);
@@ -127,7 +128,8 @@ export default function Dashboard() {
                 {isModalOpen && (
                   <CreateLinkModal
                     open={isModalOpen}
-                    onClose={() => {setIsModalOpen(false)
+                    onClose={() => {
+                      setIsModalOpen(false);
                       loadUrls();
                     }}
                   />
@@ -137,17 +139,21 @@ export default function Dashboard() {
           </div>
 
           <div className="bg-white p-4 rounded shadow-sm space-y-4">
-            {urls.map((url) => (
-              <LinkItem
-                key={url.id}
-                url={url}
-                onEdit={() => setUpdatingUrl(url)}
-                onDelete={() => {
-                  setSelectedUrl(url);
-                  setIsDeleteOpen(true);
-                }}
-              />
-            ))}
+            {urls.length === 0 ? (
+              <EmptyLinks />
+            ) : (
+              urls.map((url) => (
+                <LinkItem
+                  key={url.id}
+                  url={url}
+                  onEdit={() => setUpdatingUrl(url)}
+                  onDelete={() => {
+                    setSelectedUrl(url);
+                    setIsDeleteOpen(true);
+                  }}
+                />
+              ))
+            )}
           </div>
         </main>
       )}

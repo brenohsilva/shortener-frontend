@@ -14,3 +14,9 @@ export const loginSchema = z.object({
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
+
+export const workspaceSchema = z.object({
+  workspace: z.string().min(3, "O nome precisa ter pelo menos 3 caracteres"),
+  slug: z.string().min(3, "O slug precisa ter pelo menos 3 caracteres"),
+});
+export type WorkspaceFormData = z.infer<typeof workspaceSchema>;

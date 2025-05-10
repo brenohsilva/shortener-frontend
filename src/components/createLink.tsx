@@ -176,8 +176,8 @@ export default function CreateLinkModal({
             />
           </div>
 
-          {state?.error && (
-            <div className="text-red-500 text-sm">{state.error}</div>
+          {state?.error?.comments && (
+            <div className="text-red-500 text-sm">{state.error.comments}</div>
           )}
           {state?.success && (
             <div className="text-green-500 text-sm">

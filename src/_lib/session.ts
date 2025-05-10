@@ -13,7 +13,6 @@ export async function createSession(acessToken: string) {
   const expires = new Date(Date.now() + cookie.duration);
   const cookieStore = await cookies();
   cookieStore.set(cookie.name, acessToken, { ...cookie.options, expires });
-  redirect("/dashboard");
 }
 
 export async function verifySession() {
