@@ -1,6 +1,11 @@
 "use client";
 import CreateLinkModal from "@/components/createLink";
-import FilterDropdown from "@/components/filterDropdown";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import WorkspaceSettings from "./components/setting/setting";
 import Sidebar from "./components/sidebar/sidebar";
@@ -10,65 +15,31 @@ import { Analytics } from "./components/analytics/analytics";
 import { UpdateLink } from "@/components/updateLink";
 import { DeleteLink } from "@/components/deleteLink";
 import EmptyLinks from "@/components/emptyLinks";
+import { Button } from "@/components/ui/button";
+import { getClientUrls, getUserTags } from "@/server-actions/urlActions";
+import { myProfile } from "@/server-actions/userActions";
 
 export default function Dashboard() {
-  const [urls, setUrls] = useState<any[]>([]);
+  const [urls, setUrls] = useState<UrlData[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [active, setActive] = useState("Links");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingUrl, setUpdatingUrl] = useState<UrlData | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedUrl, setSelectedUrl] = useState<UrlData | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [error, setError] = useState(null || "");
 
-  async function loadProfile() {
+  async function loadUrls(tag?: string) {
     try {
-      const res = await fetch("/api/profile");
-      if (!res.ok) {
-        console.error("Erro ao carregar perfil:", res.statusText);
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await res.text();
-        console.error("Resposta não é JSON:", text);
-        throw new Error("Resposta não é JSON");
-      }
-
-      const data = await res.json();
-      setProfile(data);
-    } catch (error) {
-      console.error("Erro ao carregar perfil:", error);
-    }
-  }
-
-  async function loadUrls() {
-    try {
-      const res = await fetch("/api/urls");
-      if (!res.ok) {
-        console.error("Erro ao carregar as urls:", res.statusText);
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await res.text();
-        console.error("Resposta não é JSON:", text);
-        throw new Error("Resposta não é JSON");
-      }
-
-      const data = await res.json();
+      const data = await getClientUrls(tag);
       setUrls(data);
-      console.log("Urls:", data);
     } catch (error) {
-      console.error("Erro ao carregar perfil:", error);
+      console.error(error);
+      setError("Erro ao buscar os dados.");
     }
   }
-
-  useEffect(() => {
-    loadProfile();
-    loadUrls();
-  }, []);
 
   async function handleDelete(url: UrlData) {
     try {
@@ -80,28 +51,54 @@ export default function Dashboard() {
         body: JSON.stringify({ id: url.id }),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Erro ao deletar URL");
-      }
+      if (!res.ok) throw new Error("Erro ao deletar URL");
 
-      loadUrls();
+      loadUrls(selectedTag ?? undefined);
     } catch (error) {
       console.error("Erro ao deletar URL:", error);
       alert("Ocorreu um erro ao deletar a URL");
     }
   }
 
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const response = await getUserTags();
+        const tagNames = response.data.map((tag: { name: string }) => tag.name);
+        setAvailableTags(tagNames);
+      } catch (error) {
+        console.error(error);
+        setError("Erro ao buscar os dados.");
+      }
+    }
+    fetchTags();
+  }, []);
+
+  useEffect(() => {
+    loadUrls(selectedTag ?? undefined);
+  }, [selectedTag]);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const data = await myProfile();
+        setProfile(data);
+      } catch (error) {
+        console.error(error);
+        setError("Erro ao buscar os dados.");
+      }
+    }
+    fetchProfile();
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-gray-50 text-gray-900">
-      {/* Sidebar */}
       <Sidebar
         active={active}
         setActive={setActive}
         workspaceName={profile?.workspaces?.[0]?.name}
       />
 
-      {/* Conteúdo principal */}
       {active === "Links" && (
         <main className="flex-1 p-9">
           <div className="flex justify-between items-center mb-6">
@@ -109,32 +106,50 @@ export default function Dashboard() {
           </div>
 
           <div className="flex justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FilterDropdown />
-            </div>
             <div className="flex items-center gap-4">
+              {/* Dropdown para filtrar por tag */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="text-gray-500" variant="outline">
+                    {selectedTag ? `Tag: ${selectedTag}` : "Filtrar por Tag"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {availableTags.map((tag) => (
+                    <DropdownMenuItem
+                      key={tag}
+                      onClick={() => setSelectedTag(tag)}
+                    >
+                      {tag}
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem className="font-bold" onClick={() => setSelectedTag(null)}>
+                    Limpar filtro
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <input
                 type="text"
                 placeholder="Procurar..."
                 className="px-4 py-2 text-sm border rounded-md w-64"
               />
-              <div>
-                <button
-                  className="px-4 py-2 bg-black text-white rounded-md text-sm cursor-pointer"
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  Criar Link
-                </button>
-                {isModalOpen && (
-                  <CreateLinkModal
-                    open={isModalOpen}
-                    onClose={() => {
-                      setIsModalOpen(false);
-                      loadUrls();
-                    }}
-                  />
-                )}
-              </div>
+
+              <Button
+               
+                onClick={() => setIsModalOpen(true)}
+              >
+                Criar Link
+              </Button>
+              {isModalOpen && (
+                <CreateLinkModal
+                  open={isModalOpen}
+                  onClose={() => {
+                    setIsModalOpen(false);
+                    loadUrls(selectedTag ?? undefined);
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -157,8 +172,8 @@ export default function Dashboard() {
           </div>
         </main>
       )}
-      {active === "Analytics" && <Analytics />}
 
+      {active === "Analytics" && <Analytics />}
       {active === "Settings" && <WorkspaceSettings />}
 
       {updatingUrl && (
@@ -167,19 +182,16 @@ export default function Dashboard() {
           isOpen={true}
           onClose={() => {
             setUpdatingUrl(null);
-            loadUrls();
+            loadUrls(selectedTag ?? undefined);
           }}
         />
       )}
+
       {selectedUrl && (
         <DeleteLink
           open={isDeleteOpen}
           onOpenChange={setIsDeleteOpen}
-          url={{
-            id: selectedUrl.id,
-            shorten_url: selectedUrl.shorten_url,
-            origin_url: selectedUrl.origin_url,
-          }}
+          url={selectedUrl}
           onDeleteConfirm={async () => {
             await handleDelete(selectedUrl);
             setSelectedUrl(null);

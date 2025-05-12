@@ -46,8 +46,8 @@ export function Analytics() {
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Filtrar por: {groupBy === "hour" ? "Hora" : "Dia"}
+              <Button className="text-gray-700" variant="outline">
+                Filtrar por: <strong className="text-black">{groupBy === "hour" ? "Hora" : "Dia"}</strong>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -71,7 +71,7 @@ export function Analytics() {
           </DropdownMenu>
 
           <div className="px-2 py-1 border rounded">
-            <span className="text-sm text-gray-800">
+            <span className="text-sm text-gray-400">
               {groupBy === "hour" ? "Últimas 24h" : "Últimos 7 dias"}
             </span>
           </div>

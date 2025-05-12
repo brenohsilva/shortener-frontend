@@ -38,8 +38,7 @@ export async function createUrl(state: any, formData: FormData) {
   }
 }
 
-export async function createUrlAuthenticated(state: any, formData: FormData){
-  
+export async function createUrlAuthenticated(state: any, formData: FormData) {
   const { access_token } = await verifySession();
 
   const tags = formData.getAll("tags").map((tag) => {
@@ -52,7 +51,7 @@ export async function createUrlAuthenticated(state: any, formData: FormData){
     comments: formData.get("comments"),
     tags: tags,
   });
-  
+
   if (!validationResult.success) {
     return {
       error: validationResult.error.flatten().fieldErrors,
@@ -83,7 +82,6 @@ export async function createUrlAuthenticated(state: any, formData: FormData){
       },
     };
   }
-
 }
 
 export async function updateUrl(urlId: number, state: any, formData: FormData) {
@@ -131,7 +129,7 @@ export async function updateUrl(urlId: number, state: any, formData: FormData) {
 
 export async function deleteUrl(urlId: number) {
   const { access_token } = await verifySession();
-  try{
+  try {
     const response = await fetch(`http://localhost:4000/api/urls/${urlId}`, {
       method: "DELETE",
       headers: {
@@ -155,10 +153,17 @@ export async function deleteUrl(urlId: number) {
   }
 }
 
-export async function getClientUrls() {
+export async function getClientUrls(tag?: string) {
   const { access_token } = await verifySession();
+
   try {
-    const response = await fetch("http://localhost:4000/api/urls", {
+   
+    const url = new URL("http://localhost:4000/api/urls");
+    if (tag) {
+      url.searchParams.append("tag", tag);
+    }
+
+    const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
         Authorization: `Bearer ${access_token}`,
@@ -181,10 +186,10 @@ export async function getClientUrls() {
 export async function getUrlClicks(groupBy: "hour" | "day", tag?: string) {
   const { access_token } = await verifySession();
   const params = new URLSearchParams();
-  if (groupBy) params.append('groupBy', groupBy);
-  if (tag) params.append('tag', tag);
+  if (groupBy) params.append("groupBy", groupBy);
+  if (tag) params.append("tag", tag);
 
-   const url = `http://localhost:4000/api/urls/clicks?${params.toString()}`;
+  const url = `http://localhost:4000/api/urls/clicks?${params.toString()}`;
 
   try {
     const response = await fetch(url, {
@@ -203,6 +208,29 @@ export async function getUrlClicks(groupBy: "hour" | "day", tag?: string) {
     return clicks;
   } catch (error) {
     console.error("Error fetching clicks:", error);
+    throw error;
+  }
+}
+
+export async function getUserTags() {
+  const { access_token } = await verifySession();
+  try {
+    const response = await fetch("http://localhost:4000/api/urls/tags", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch tags");
+    }
+
+    const tags = await response.json();
+    return tags;
+  } catch (error) {
+    console.error("Error fetching tags:", error);
     throw error;
   }
 }
