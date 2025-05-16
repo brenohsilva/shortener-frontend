@@ -4,6 +4,7 @@ import { loginSchema, registerSchema, workspaceSchema } from "@/app/schemas/user
 
 import { redirect } from "next/navigation";
 import { createSession, verifySession } from "@/_lib/session";
+import { UserProfile } from "@/app/types/profileData";
 
 export async function register(state: any, formData: FormData) {
   const validationResult = registerSchema.safeParse({
@@ -121,7 +122,7 @@ export async function myProfile() {
       throw new Error("Failed to fetch profile");
     }
 
-    const profileData = await response.json();
+    const profileData: UserProfile = await response.json();
     return profileData;
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -166,4 +167,32 @@ export async function createWorkspace(state: any, formData: FormData) {
     };
   }
   redirect("/dashboard");
+}
+
+export async function updateWorkspaceName(name: string) {
+  const { access_token } = await verifySession();
+  const response = await fetch(`http://localhost:4000/api/workspaces/${workspaceId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) throw new Error("Erro ao atualizar nome do workspace");
+}
+
+export async function updateWorkspaceSlug(workspaceId: string, slug: string) {
+  const { access_token } = await verifySession();
+  const response = await fetch(`http://localhost:4000/api/workspaces/${workspaceId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ slug }),
+  });
+
+  if (!response.ok) throw new Error("Erro ao atualizar slug do workspace");
 }
